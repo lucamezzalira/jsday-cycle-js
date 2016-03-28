@@ -1,31 +1,46 @@
 import Rx from 'rx';
 import Cycle from '@cycle/core';
-import CycleDOM from '@cycle/dom';
+import {makeDOMDriver, option, ul, li, select, div} from '@cycle/dom';
 import {makeHTTPDriver} from '@cycle/http';
 
-function body(value){
-    return CycleDOM.div(".container", [
-                CycleDOM.button("#btn", ["click me"]),
-                CycleDOM.p(value + " value from Rx.JS")
+function body(results){
+    console.log("results", results.text);
+    return div(".container", [
+                select("#lines", [
+                    option({ value: 'district' }, ["District line"]),
+                    option({ value: 'northern' }, ["Northern line"]),
+                    option({ value: 'bakerloo' }, ["Bakerloo line"]),
+                    option({ value: 'circle' }, ["Circle line"]),
+                    option({ value: 'central' }, ["Central line"]),
+                    option({ value: 'piccadilly' }, ["Piccadilly line"]),
+                    option({ value: 'victoria' }, ["Victora line"]),
+                ]),
+                ul(".tube-results")
             ])           
 }
 
 function main(drivers) {
+    //let API_URL = 'https://api.tfl.gov.uk/line/district/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709';
+    let API_URL = "data.json";
+    let request$ = Rx.Observable.just({
+        url: API_URL
+    });
+    let vtree$ = drivers.HTTP
+                .filter(res => res.request.url === API_URL)
+                .mergeAll()
+                .startWith("loading...")
+                .map(res => {
+                    return body(res);
+                });
     return {
-        DOM: drivers.DOM.select('#btn').events('click')
-            .startWith(false)
-            .map(_ => {
-                return body(Math.floor(Math.random()*1000));
-            })
-        
-        /*Rx.Observable.interval(1000)
-            .map(value => CycleDOM.p(`${value} value from Rx.JS`))*/       
-        
-    }
+        DOM: vtree$,
+        HTTP: request$
+    };
+    
 }
 
 const drivers = {
-    DOM: CycleDOM.makeDOMDriver("#container"),
+    DOM: makeDOMDriver("body"),
     HTTP: makeHTTPDriver()
 }
 
