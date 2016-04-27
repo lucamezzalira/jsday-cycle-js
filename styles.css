@@ -1,17 +1,55 @@
 html, body {
     margin: 0;
     padding: 0;
+    height: auto;
     font-family: sans-serif;
 }
 
+.destination-station{
+    width: 100%;
+    float: left;
+}
+
 .train {
+    color: black;
     list-style-type: none;
     float:left;
-    width: 50%;
-    line-height: 7px;
+    width: 33%;
     font-size: 14px;
 }
 
 .train .train-data span{
     font-weight: bold;
+}
+
+.district{
+    color: green;
+}
+
+#title{
+
+}
+
+.northern{
+    color: black;
+}
+
+.bakerloo{
+    color: saddlebrown;
+}
+
+.circle{
+    color: darkgoldenrod;
+}
+
+.central{
+    color: red;
+}
+
+.piccadilly{
+    color: darkblue;
+}
+
+.victoria{
+    color: deepskyblue;
 }
