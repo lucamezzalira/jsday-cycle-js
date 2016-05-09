@@ -72,8 +72,8 @@ function main(drivers) {
     const API_URL = "https://api.tfl.gov.uk/line/";
     let currentLine = "circle";
     
-    let dropDownChange$ = drivers.DOM.select("#lines")
-                                .events("change");                                                              
+    let dropDownChange$ = drivers.DOM.select("#lines").events("change"); 
+                                                                 
     let linesRequest$ = dropDownChange$.startWith({target: {value: currentLine}})
                                        .map(evt => {
                                             if(evt.target.value)
