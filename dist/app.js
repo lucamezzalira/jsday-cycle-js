@@ -21940,13 +21940,101 @@ function extend() {
 },{}],68:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = app;
+
 var _rx = require('rx');
 
 var _rx2 = _interopRequireDefault(_rx);
 
-var _moment = require('moment');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _moment2 = _interopRequireDefault(_moment);
+var getBody = require('./Template').default;
+
+var BASE_URL = "https://api.tfl.gov.uk/line/";
+var DEFAULT_LINE = "piccadilly";
+
+function normaliseData(data) {
+    var finalData = [];
+
+    data.sort(function (a, b) {
+        if (a.destinationName > b.destinationName) return 1;
+        if (a.destinationName < b.destinationName) return -1;
+
+        return 0;
+    }).sort(function (a, b) {
+        return a - b;
+    }).map(function (item, i, arr) {
+        if (item.destinationName === "" || !item.destinationName) return;
+
+        if (finalData.length === 0 || finalData.findIndex(function (val) {
+            return val.destination === item.destinationName;
+        }) < 0) finalData.push({ lineId: item.lineId, destination: item.destinationName, trains: [] });
+
+        finalData[finalData.length - 1].trains.push(item);
+    });
+
+    return finalData;
+}
+
+function intent(_DOM) {
+    var dropDownChange$ = _DOM.select("#lines").events("change");
+
+    return {
+        line$: dropDownChange$.map(function (evt) {
+            return evt.target.value;
+        })
+    };
+}
+
+function model(_response$, _actions) {
+    var state$ = _response$.map(function (data) {
+        return normaliseData(data.trains);
+    });
+    return state$;
+}
+
+function view(_states$) {
+    return _states$.map(function (state) {
+        return getBody(state);
+    });
+}
+
+var networking = {
+    processResponse: function processResponse(_HTTP) {
+        return _HTTP.switch().filter(function (res) {
+            return res.request.url.indexOf(BASE_URL) === 0;
+        }).map(function (res) {
+
+            return { trains: JSON.parse(res.text) };
+        });
+    },
+    getRequestURL: function getRequestURL(line$) {
+        return line$.startWith(DEFAULT_LINE).map(function (line) {
+            return {
+                url: '' + BASE_URL + line + '/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709'
+            };
+        });
+    }
+};
+
+function app(_drivers) {
+    var response$ = networking.processResponse(_drivers.HTTP);
+    var actions = intent(_drivers.DOM);
+    var state$ = model(response$, actions);
+    var vtree$ = view(state$);
+    var trainsRequest$ = networking.getRequestURL(actions.line$);
+
+    return {
+        DOM: vtree$,
+        HTTP: trainsRequest$
+    };
+}
+
+},{"./Template":70,"rx":28}],69:[function(require,module,exports){
+'use strict';
 
 var _core = require('@cycle/core');
 
@@ -21955,6 +22043,31 @@ var _core2 = _interopRequireDefault(_core);
 var _dom = require('@cycle/dom');
 
 var _http = require('@cycle/http');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var app = require('./App').default;
+
+var drivers = {
+    DOM: (0, _dom.makeDOMDriver)("body"),
+    HTTP: (0, _http.makeHTTPDriver)()
+};
+
+_core2.default.run(app, drivers);
+
+},{"./App":68,"@cycle/core":1,"@cycle/dom":2,"@cycle/http":11}],70:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = getBody;
+
+var _dom = require('@cycle/dom');
+
+var _moment = require('moment');
+
+var _moment2 = _interopRequireDefault(_moment);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -21974,68 +22087,9 @@ function renderTrainsData(data) {
     }));
 }
 
-function normaliseData(data) {
-    var finalData = [];
-
-    data.sort(function (a, b) {
-        if (a.destinationName > b.destinationName) return 1;
-        if (a.destinationName < b.destinationName) return -1;
-
-        return 0;
-    }).sort(function (a, b) {
-        return a - b;
-    }).map(function (item, i, arr) {
-        if (finalData.length === 0 || item.destinationName !== finalData[finalData.length - 1].destination) finalData.push({ lineId: item.lineId, destination: item.destinationName, trains: [] });
-
-        finalData[finalData.length - 1].trains.push(item);
-    });
-
-    return finalData;
-}
-
 function getBody(results) {
-    return (0, _dom.div)(".container", [(0, _dom.h1)("#title", ["Reactive Live London Tube trains status"]), (0, _dom.select)("#lines", [(0, _dom.option)({ value: 'circle' }, ["Circle line"]), (0, _dom.option)({ value: 'northern' }, ["Northern line"]), (0, _dom.option)({ value: 'bakerloo' }, ["Bakerloo line"]), (0, _dom.option)({ value: 'central' }, ["Central line"]), (0, _dom.option)({ value: 'district' }, ["District line"]), (0, _dom.option)({ value: 'piccadilly' }, ["Piccadilly line"]), (0, _dom.option)({ value: 'victoria' }, ["Victora line"])]), (0, _dom.button)('#refresh', ["Refresh"]), renderTrainsData(normaliseData(results))]);
+    var selectedLine = results.length > 0 ? 'Selected line: ' + results[0].lineId : "";
+    return (0, _dom.div)(".container", [(0, _dom.h1)("#title", ["Reactive Live London Tube trains status"]), (0, _dom.select)("#lines", [(0, _dom.option)({ value: 'piccadilly' }, ["Piccadilly line"]), (0, _dom.option)({ value: 'northern' }, ["Northern line"]), (0, _dom.option)({ value: 'bakerloo' }, ["Bakerloo line"]), (0, _dom.option)({ value: 'central' }, ["Central line"]), (0, _dom.option)({ value: 'district' }, ["District line"]), (0, _dom.option)({ value: 'circle' }, ["Circle line"]), (0, _dom.option)({ value: 'victoria' }, ["Victora line"])]), (0, _dom.h3)("#selectedLine", [selectedLine]), renderTrainsData(results)]);
 }
 
-function main(drivers) {
-    //TODO: set interval to refresh data
-    //TODO: organise code for MVI
-
-    //let API_URL = "data.json"; //for local data
-    var API_URL = "https://api.tfl.gov.uk/line/";
-    var currentLine = "circle";
-
-    var dropDownChange$ = drivers.DOM.select("#lines").events("change");
-    var buttonClick$ = drivers.DOM.select("#refresh").events("click");
-    var linesRequest$ = _rx2.default.Observable.merge(dropDownChange$, buttonClick$).startWith({ target: { value: currentLine } }).map(function (evt) {
-        if (evt.target.value) currentLine = evt.target.value;
-
-        return {
-            //url: API_URL
-            url: '' + API_URL + currentLine + '/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709'
-        };
-    });
-    var vtree$ = drivers.HTTP.filter(function (res) {
-        return res.request.url.indexOf(API_URL) === 0;
-    }).mergeAll().map(function (res) {
-        var body = (0, _dom.div)();
-        var data = res.text;
-        if (data) body = getBody(JSON.parse(data));
-
-        return body;
-    });
-
-    return {
-        DOM: vtree$,
-        HTTP: linesRequest$
-    };
-}
-
-var drivers = {
-    DOM: (0, _dom.makeDOMDriver)("body"),
-    HTTP: (0, _http.makeHTTPDriver)()
-};
-
-_core2.default.run(main, drivers);
-
-},{"@cycle/core":1,"@cycle/dom":2,"@cycle/http":11,"moment":25,"rx":28}]},{},[68]);
+},{"@cycle/dom":2,"moment":25}]},{},[69]);
