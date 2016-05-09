@@ -21952,9 +21952,7 @@ var _rx2 = _interopRequireDefault(_rx);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var getBody = require('./Template').default;
-
-var BASE_URL = "https://api.tfl.gov.uk/line/";
-var DEFAULT_LINE = "piccadilly";
+var networking = require('./Networking').default;
 
 function normaliseData(data) {
     var finalData = [];
@@ -22002,24 +22000,6 @@ function view(_states$) {
     });
 }
 
-var networking = {
-    processResponse: function processResponse(_HTTP) {
-        return _HTTP.switch().filter(function (res) {
-            return res.request.url.indexOf(BASE_URL) === 0;
-        }).map(function (res) {
-
-            return { trains: JSON.parse(res.text) };
-        });
-    },
-    getRequestURL: function getRequestURL(line$) {
-        return line$.startWith(DEFAULT_LINE).map(function (line) {
-            return {
-                url: '' + BASE_URL + line + '/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709'
-            };
-        });
-    }
-};
-
 function app(_drivers) {
     var response$ = networking.processResponse(_drivers.HTTP);
     var actions = intent(_drivers.DOM);
@@ -22033,7 +22013,7 @@ function app(_drivers) {
     };
 }
 
-},{"./Template":70,"rx":28}],69:[function(require,module,exports){
+},{"./Networking":70,"./Template":71,"rx":28}],69:[function(require,module,exports){
 'use strict';
 
 var _core = require('@cycle/core');
@@ -22056,6 +22036,33 @@ var drivers = {
 _core2.default.run(app, drivers);
 
 },{"./App":68,"@cycle/core":1,"@cycle/dom":2,"@cycle/http":11}],70:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var BASE_URL = "https://api.tfl.gov.uk/line/";
+var DEFAULT_LINE = "piccadilly";
+
+exports.default = {
+    processResponse: function processResponse(_HTTP) {
+        return _HTTP.switch().filter(function (res) {
+            return res.request.url.indexOf(BASE_URL) === 0;
+        }).map(function (res) {
+
+            return { trains: JSON.parse(res.text) };
+        });
+    },
+    getRequestURL: function getRequestURL(line$) {
+        return line$.startWith(DEFAULT_LINE).map(function (line) {
+            return {
+                url: "" + BASE_URL + line + "/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709"
+            };
+        });
+    }
+};
+
+},{}],71:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
