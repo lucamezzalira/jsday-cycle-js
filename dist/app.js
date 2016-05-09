@@ -21985,7 +21985,11 @@ function normaliseData(data) {
     }).sort(function (a, b) {
         return a - b;
     }).map(function (item, i, arr) {
-        if (finalData.length === 0 || item.destinationName !== finalData[finalData.length - 1].destination) finalData.push({ lineId: item.lineId, destination: item.destinationName, trains: [] });
+        if (item.destinationName === "" || !item.destinationName) return;
+
+        if (finalData.length === 0 || finalData.findIndex(function (val) {
+            return val.destination === item.destinationName;
+        }) < 0) finalData.push({ lineId: item.lineId, destination: item.destinationName, trains: [] });
 
         finalData[finalData.length - 1].trains.push(item);
     });
@@ -21994,24 +21998,18 @@ function normaliseData(data) {
 }
 
 function getBody(results) {
-    return (0, _dom.div)(".container", [(0, _dom.h1)("#title", ["Reactive Live London Tube trains status"]), (0, _dom.select)("#lines", [(0, _dom.option)({ value: 'circle' }, ["Circle line"]), (0, _dom.option)({ value: 'northern' }, ["Northern line"]), (0, _dom.option)({ value: 'bakerloo' }, ["Bakerloo line"]), (0, _dom.option)({ value: 'central' }, ["Central line"]), (0, _dom.option)({ value: 'district' }, ["District line"]), (0, _dom.option)({ value: 'piccadilly' }, ["Piccadilly line"]), (0, _dom.option)({ value: 'victoria' }, ["Victora line"])]), (0, _dom.button)('#refresh', ["Refresh"]), renderTrainsData(normaliseData(results))]);
+    return (0, _dom.div)(".container", [(0, _dom.h1)("#title", ["Reactive Live London Tube trains status"]), (0, _dom.select)("#lines", [(0, _dom.option)({ value: 'circle' }, ["Circle line"]), (0, _dom.option)({ value: 'northern' }, ["Northern line"]), (0, _dom.option)({ value: 'bakerloo' }, ["Bakerloo line"]), (0, _dom.option)({ value: 'central' }, ["Central line"]), (0, _dom.option)({ value: 'district' }, ["District line"]), (0, _dom.option)({ value: 'piccadilly' }, ["Piccadilly line"]), (0, _dom.option)({ value: 'victoria' }, ["Victora line"])]), renderTrainsData(normaliseData(results))]);
 }
 
 function main(drivers) {
-    //TODO: set interval to refresh data
-    //TODO: organise code for MVI
-
-    //let API_URL = "data.json"; //for local data
     var API_URL = "https://api.tfl.gov.uk/line/";
     var currentLine = "circle";
 
     var dropDownChange$ = drivers.DOM.select("#lines").events("change");
-    var buttonClick$ = drivers.DOM.select("#refresh").events("click");
-    var linesRequest$ = _rx2.default.Observable.merge(dropDownChange$, buttonClick$).startWith({ target: { value: currentLine } }).map(function (evt) {
+    var linesRequest$ = dropDownChange$.startWith({ target: { value: currentLine } }).map(function (evt) {
         if (evt.target.value) currentLine = evt.target.value;
 
         return {
-            //url: API_URL
             url: '' + API_URL + currentLine + '/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709'
         };
     });

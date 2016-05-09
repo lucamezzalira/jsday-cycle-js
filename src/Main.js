@@ -40,7 +40,10 @@ function normaliseData(data){
     }).sort((a, b) => {
         return a - b;
     }).map((item, i, arr) => {
-        if(finalData.length === 0 || item.destinationName !== finalData[finalData.length-1].destination)
+        if(item.destinationName === "" || !item.destinationName)
+            return;
+        
+        if(finalData.length === 0 ||  finalData.findIndex(val => val.destination === item.destinationName) < 0)
             finalData.push({lineId: item.lineId, destination: item.destinationName, trains:[]});
         
         finalData[finalData.length-1].trains.push(item);
@@ -61,33 +64,25 @@ function getBody(results){
                     option({ value: 'piccadilly' }, ["Piccadilly line"]),
                     option({ value: 'victoria' }, ["Victora line"]),
                 ]),
-                button('#refresh', ["Refresh"]),
                 renderTrainsData(normaliseData(results))
             ])           
 }
 
 function main(drivers) {
-    //TODO: district line sorting bug
-    //TODO: organise code for MVI
-    //NTH: select currentLine from first element dropdown 
-    
     const API_URL = "https://api.tfl.gov.uk/line/";
     let currentLine = "circle";
     
     let dropDownChange$ = drivers.DOM.select("#lines")
-                                .events("change");
-    let buttonClick$ = drivers.DOM.select("#refresh")
-                                .events("click")                                                                
-    let linesRequest$ = Rx.Observable.merge(dropDownChange$, buttonClick$)
-                                .startWith({target: {value: currentLine}})
-                                .map(evt => {
-                                    if(evt.target.value)
-                                        currentLine = evt.target.value;
+                                .events("change");                                                              
+    let linesRequest$ = dropDownChange$.startWith({target: {value: currentLine}})
+                                       .map(evt => {
+                                            if(evt.target.value)
+                                                currentLine = evt.target.value;
 
-                                    return {
-                                        url: `${API_URL}${currentLine}/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709`
-                                    }
-                                });
+                                            return {
+                                                url: `${API_URL}${currentLine}/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709`
+                                            }
+                                       });
     let vtree$ = drivers.HTTP
                     .filter(res => res.request.url.indexOf(API_URL) === 0)
                     .mergeAll()
