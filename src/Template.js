@@ -1,4 +1,4 @@
-import {option, ul, li, h1, h2, h3, select, div, p, span, button} from '@cycle/dom';
+import {option, ul, li, h1, h2, h3, select, div, p, span} from '@cycle/dom';
 import moment from 'moment';
 
 function getTrainData(data){
