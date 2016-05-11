@@ -25,7 +25,10 @@ function renderTrainsData(data){
 }
 
 export default function getBody(results){
-    let selectedLine = results.length > 0 ? 'Selected line: ' + results[0].lineId : "";
+    console.log(results)
+    
+    let selectedLine = results[0].length > 0 ? 'Selected line: ' + results[0] : "";
+        
     return div(".container", [
                 h1("#title", ["Reactive Live London Tube trains status"]),
                 select("#lines", [
@@ -38,6 +41,6 @@ export default function getBody(results){
                     option({ value: 'victoria' }, ["Victora line"]),
                 ]),
                 h3("#selectedLine", [selectedLine]),            
-                renderTrainsData(results)
-            ])           
+                renderTrainsData(results[1])
+            ]);
 }

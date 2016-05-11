@@ -21954,6 +21954,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var getBody = require('./Template').default;
 var networking = require('./Networking').default;
 
+var DEFAULT_LINE = {
+    label: "Piccadilly line",
+    value: "piccadilly"
+};
+
 function normaliseData(data) {
     var finalData = [];
 
@@ -21982,15 +21987,23 @@ function intent(_DOM) {
 
     return {
         line$: dropDownChange$.map(function (evt) {
-            return evt.target.value;
+            return {
+                label: evt.target[evt.target.selectedIndex].innerHTML,
+                value: evt.target.value
+            };
         })
     };
 }
 
 function model(_response$, _actions) {
-    var state$ = _response$.map(function (data) {
+    var trains$ = _response$.map(function (data) {
         return normaliseData(data.trains);
     });
+    var line$ = _actions.line$.startWith(DEFAULT_LINE).map(function (line) {
+        return line.label;
+    });
+    var state$ = _rx2.default.Observable.combineLatest(line$, trains$);
+
     return state$;
 }
 
@@ -22005,7 +22018,7 @@ function app(_drivers) {
     var actions = intent(_drivers.DOM);
     var state$ = model(response$, actions);
     var vtree$ = view(state$);
-    var trainsRequest$ = networking.getRequestURL(actions.line$);
+    var trainsRequest$ = networking.getRequestURL(actions.line$, DEFAULT_LINE);
 
     return {
         DOM: vtree$,
@@ -22041,28 +22054,42 @@ _core2.default.run(app, drivers);
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _rx = require("rx");
+
+var _rx2 = _interopRequireDefault(_rx);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var BASE_URL = "https://api.tfl.gov.uk/line/";
-var DEFAULT_LINE = "piccadilly";
+var INTERVAL_TIME = 1000;
 
 exports.default = {
     processResponse: function processResponse(_HTTP) {
         return _HTTP.switch().filter(function (res) {
             return res.request.url.indexOf(BASE_URL) === 0;
         }).map(function (res) {
-
             return { trains: JSON.parse(res.text) };
         });
     },
-    getRequestURL: function getRequestURL(line$) {
-        return line$.startWith(DEFAULT_LINE).map(function (line) {
+    getRequestURL: function getRequestURL(line$, defaultLine) {
+        var interval$ = _rx2.default.Observable.interval(INTERVAL_TIME);
+        var lineURL$ = line$.startWith(defaultLine).map(function (line) {
             return {
-                url: "" + BASE_URL + line + "/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709"
+                url: "" + BASE_URL + line.value + "/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709"
             };
         });
+
+        var final$ = lineURL$.combineLatest(interval$, function (url, int) {
+            return url;
+        }).retryWhen(function (errors) {
+            return errors.delay(500);
+        });
+        return final$;
     }
 };
 
-},{}],71:[function(require,module,exports){
+},{"rx":28}],71:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22095,8 +22122,11 @@ function renderTrainsData(data) {
 }
 
 function getBody(results) {
-    var selectedLine = results.length > 0 ? 'Selected line: ' + results[0].lineId : "";
-    return (0, _dom.div)(".container", [(0, _dom.h1)("#title", ["Reactive Live London Tube trains status"]), (0, _dom.select)("#lines", [(0, _dom.option)({ value: 'piccadilly' }, ["Piccadilly line"]), (0, _dom.option)({ value: 'northern' }, ["Northern line"]), (0, _dom.option)({ value: 'bakerloo' }, ["Bakerloo line"]), (0, _dom.option)({ value: 'central' }, ["Central line"]), (0, _dom.option)({ value: 'district' }, ["District line"]), (0, _dom.option)({ value: 'circle' }, ["Circle line"]), (0, _dom.option)({ value: 'victoria' }, ["Victora line"])]), (0, _dom.h3)("#selectedLine", [selectedLine]), renderTrainsData(results)]);
+    console.log(results);
+
+    var selectedLine = results[0].length > 0 ? 'Selected line: ' + results[0] : "";
+
+    return (0, _dom.div)(".container", [(0, _dom.h1)("#title", ["Reactive Live London Tube trains status"]), (0, _dom.select)("#lines", [(0, _dom.option)({ value: 'piccadilly' }, ["Piccadilly line"]), (0, _dom.option)({ value: 'northern' }, ["Northern line"]), (0, _dom.option)({ value: 'bakerloo' }, ["Bakerloo line"]), (0, _dom.option)({ value: 'central' }, ["Central line"]), (0, _dom.option)({ value: 'district' }, ["District line"]), (0, _dom.option)({ value: 'circle' }, ["Circle line"]), (0, _dom.option)({ value: 'victoria' }, ["Victora line"])]), (0, _dom.h3)("#selectedLine", [selectedLine]), renderTrainsData(results[1])]);
 }
 
 },{"@cycle/dom":2,"moment":25}]},{},[69]);
