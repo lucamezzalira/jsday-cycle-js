@@ -2,6 +2,8 @@ import Rx from 'rx';
 
 const BASE_URL = "https://api.tfl.gov.uk/line/";
 const INTERVAL_TIME = 5000;
+const APP_ID = "a2420191";
+const APP_KEY = "b81115a21d9e11449d8fffd165644709";
 
 export default {
     processResponse(_HTTP){
@@ -18,7 +20,15 @@ export default {
                     .startWith(defaultLine)
                     .map(line => {
                         return {
-                            url: `${BASE_URL}${line.value}/arrivals?app_id=a2420191&app_key=b81115a21d9e11449d8fffd165644709`
+                            url: `${BASE_URL}${line.value}/arrivals`,
+                            method: 'GET',
+                            headers: {
+                                "Content-Type": "text/plain"
+                            },
+                            query:{
+                                "app_id": APP_ID,
+                                "app_key": APP_KEY
+                            }
                         }
                     })
                     
