@@ -1,4 +1,5 @@
 import Rx from 'rx';
+import React from 'react';
 let getBody = require('./Template').default;
 let networking = require('./Networking').default;
 
@@ -66,6 +67,21 @@ export default function app(_drivers){
 
     return {
         DOM: vtree$,
-        HTTP: trainsRequest$
+        HTTP: trainsRequest$,
+        ReactDOM: Rx.Observable.just(<Cc/>)
     };
 }
+
+var Cc = React.createClass({
+    render(){
+        return (<div>
+                <h2>React renderer</h2>
+                <select id="lines" onChange={(evt) => console.log(evt.target.selectedIndex)}>
+                    <option value="piccadilly">Piccadilly Line</option>
+                    <option value="northern">Northern Line</option>
+                    <option value="circle">Circle Line</option>
+               </select>
+               <hr/>
+               </div>)
+    }
+})
