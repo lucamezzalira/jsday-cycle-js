@@ -33,7 +33,6 @@ export default {
                     })
                     
         let final$ = lineURL$.combineLatest(interval$, (url, int) => url);
-       // return final$;
-        return lineURL$ 
+        return final$; 
     }
 }

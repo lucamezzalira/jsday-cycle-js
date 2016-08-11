@@ -28,7 +28,7 @@ function normaliseData(data){
         
         finalData[finalData.length-1].trains.push(item);
     });
-              console.log(finalData)  
+ 
    return finalData
 }
 
