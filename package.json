@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "transpile": "babel src --nonStandard true --loose all --modules ignore -o dist/app.js && cp ./index.html ./dist",
-    "babelify": "browserify ./src/Main.js -o ./dist/app.js -t [ babelify --presets [ es2015 ] ] && cp ./index.html ./dist && cp ./styles.css ./dist",
-    "reload": " watchify -t babelify -p browserify-hmr ./src/Main.js -o ./dist/app.js -t [ babelify --presets [ es2015 ] ] && cp ./index.html ./dist && cp ./styles.css ./dist"
+    "babelify": "browserify ./src/Main.js -o ./dist/app.js -t [ babelify --presets [ es2015 ] ] && cp ./index.html ./dist && cp ./styles.css ./dist"
   },
   "author": "luca mezzalira <mezzalab@gmail.com> (http://lucamezzalira.com)",
   "license": "ISC",
