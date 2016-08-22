@@ -31,15 +31,16 @@ export default function getBody(results){
     return div(".container", [
                 h1("#title", ["Reactive Live London Tube trains status"]),
                 select("#lines", [
-                    option({ value: 'piccadilly' }, ["Piccadilly line"]),
-                    option({ value: 'northern' }, ["Northern line"]),
-                    option({ value: 'bakerloo' }, ["Bakerloo line"]),
-                    option({ value: 'central' }, ["Central line"]),
-                    option({ value: 'district' }, ["District line"]),
-                    option({ value: 'circle' }, ["Circle line"]),
-                    option({ value: 'victoria' }, ["Victora line"]),
+                    option({attrs: { value: 'piccadilly' }}, ["Piccadilly line"]),
+                    option({attrs: { value: 'northern' }}, ["Northern line"]),
+                    option({attrs: { value: 'bakerloo' }}, ["Bakerloo line"]),
+                    option({attrs: { value: 'central' }}, ["Central line"]),
+                    option({attrs: { value: 'district' }}, ["District line"]),
+                    option({attrs: { value: 'circle' }}, ["Circle line"]),
+                    option({attrs: { value: 'victoria' }}, ["Victora line"]),
                 ]),
                 h3("#selectedLine", [selectedLine]),            
                 renderTrainsData(results[1])
             ]);
+
 }

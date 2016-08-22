@@ -1,4 +1,4 @@
-import Rx from 'rx';
+import xs from 'xstream';
 let getBody = require('./Template').default;
 let networking = require('./Networking').default;
 
@@ -48,7 +48,7 @@ function intent(_DOM){
 function model(_response$, _actions){
    let trains$ = _response$.map(data => normaliseData(data.trains))
    let line$ = _actions.line$.startWith(DEFAULT_LINE).map(line => line.label);
-   let state$ = Rx.Observable.combineLatest(line$, trains$);
+   let state$ = xs.combine(line$, trains$);
 
    return state$;
 }
@@ -63,7 +63,7 @@ export default function app(_drivers){
     const state$ = model(response$, actions);
     const vtree$ = view(state$);
     const trainsRequest$ = networking.getRequestURL(actions.line$, DEFAULT_LINE);
-
+    
     return {
         DOM: vtree$,
         HTTP: trainsRequest$
