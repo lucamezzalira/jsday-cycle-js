@@ -13950,6 +13950,8 @@ var _xstream = require('xstream');
 
 var _xstream2 = _interopRequireDefault(_xstream);
 
+var _NormaliseData = require('./NormaliseData');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var getBody = require('./Template').default;
@@ -13959,29 +13961,6 @@ var DEFAULT_LINE = {
     label: "Piccadilly line",
     value: "piccadilly"
 };
-
-function normaliseData(data) {
-    var finalData = [];
-
-    data.sort(function (a, b) {
-        if (a.towards > b.towards) return 1;
-        if (a.towards < b.towards) return -1;
-
-        return 0;
-    }).sort(function (a, b) {
-        return a - b;
-    }).map(function (item, i, arr) {
-        if (item.towards === "" || !item.towards) return;
-
-        if (finalData.length === 0 || finalData.findIndex(function (val) {
-            return val.destination === item.towards;
-        }) < 0) finalData.push({ lineId: item.lineId, destination: item.towards, trains: [] });
-
-        finalData[finalData.length - 1].trains.push(item);
-    });
-
-    return finalData;
-}
 
 function intent(_DOM) {
     var dropDownChange$ = _DOM.select("#lines").events("change");
@@ -13998,7 +13977,7 @@ function intent(_DOM) {
 
 function model(_response$, _actions) {
     var trains$ = _response$.map(function (data) {
-        return normaliseData(data.trains);
+        return (0, _NormaliseData.normaliseData)(data.trains);
     });
     var line$ = _actions.line$.startWith(DEFAULT_LINE).map(function (line) {
         return line.label;
@@ -14027,7 +14006,7 @@ function app(_drivers) {
     };
 }
 
-},{"./Networking":133,"./Template":134,"xstream":130}],132:[function(require,module,exports){
+},{"./Networking":133,"./NormaliseData":134,"./Template":135,"xstream":130}],132:[function(require,module,exports){
 'use strict';
 
 var _xstreamRun = require('@cycle/xstream-run');
@@ -14067,7 +14046,6 @@ exports.default = {
         return response;
     },
     getRequestURL: function getRequestURL(line$, defaultLine) {
-
         var lineURL$ = line$.startWith(defaultLine).map(function (line) {
             return {
                 url: "" + BASE_URL + line.value + "/arrivals",
@@ -14082,12 +14060,41 @@ exports.default = {
                 }
             };
         });
-
         return lineURL$;
     }
 };
 
 },{}],134:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.normaliseData = normaliseData;
+function normaliseData(data) {
+    var finalData = [];
+
+    data.sort(function (a, b) {
+        if (a.towards > b.towards) return 1;
+        if (a.towards < b.towards) return -1;
+
+        return 0;
+    }).sort(function (a, b) {
+        return a - b;
+    }).map(function (item, i, arr) {
+        if (item.towards === "" || !item.towards) return;
+
+        if (finalData.length === 0 || finalData.findIndex(function (val) {
+            return val.destination === item.towards;
+        }) < 0) finalData.push({ lineId: item.lineId, destination: item.towards, trains: [] });
+
+        finalData[finalData.length - 1].trains.push(item);
+    });
+
+    return finalData;
+}
+
+},{}],135:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
