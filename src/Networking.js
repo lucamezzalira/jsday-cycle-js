@@ -8,7 +8,6 @@ const APP_KEY = "b81115a21d9e11449d8fffd165644709";
 
 export default {
     processResponse(_HTTP){
-        console.log(_HTTP)
         let response = _HTTP.select(HTTP_ARRIVALS_CATEGORY)
                         .flatten()
                         .map(res => {
@@ -37,11 +36,9 @@ export default {
                             }
                         })
         
-        let finalStream$ = xs.combine(interval$, lineURL$)
-                             .map(([interval, line]) => { 
-                                 return line
-                             });
-
-        return finalStream$;
+        return xs.combine(interval$, lineURL$)
+                 .map(([interval, line]) => { 
+                     return line
+                 });
     }
 }
