@@ -1,3 +1,5 @@
+import xs from 'xstream';
+
 const BASE_URL = "https://api.tfl.gov.uk/line/";
 const INTERVAL_TIME = 5000;
 const HTTP_ARRIVALS_CATEGORY = "arrivals"
@@ -7,7 +9,7 @@ const APP_KEY = "b81115a21d9e11449d8fffd165644709";
 export default {
     processResponse(_HTTP){
         console.log(_HTTP)
-        let response = _HTTP.select('arrivals')
+        let response = _HTTP.select(HTTP_ARRIVALS_CATEGORY)
                         .flatten()
                         .map(res => {
                             return {trains: JSON.parse(res.text)}
@@ -16,7 +18,8 @@ export default {
         return response;
     },
     
-    getRequestURL(line$, defaultLine){    
+    getRequestURL(line$, defaultLine){
+        let interval$ = xs.periodic(INTERVAL_TIME);
         let lineURL$ = line$
                         .startWith(defaultLine)
                         .map(line => {
@@ -33,6 +36,12 @@ export default {
                                 }
                             }
                         })
-        return lineURL$;
+        
+        let finalStream$ = xs.combine(interval$, lineURL$)
+                             .map(([interval, line]) => { 
+                                 return line
+                             });
+
+        return finalStream$;
     }
 }
